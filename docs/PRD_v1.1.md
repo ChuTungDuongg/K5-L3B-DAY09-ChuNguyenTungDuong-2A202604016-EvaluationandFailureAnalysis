@@ -19,11 +19,11 @@ v1.0 ở đây chỉ mô tả phạm vi kỹ thuật kế thừa từ source Day
 - Kênh: CLI offline. Chạy trên SQLite tạm với MockLLM, không gọi API LLM hoặc dịch vụ thanh toán thực tế.
 - Giới hạn tiền: theo approval gắn đúng claim còn hiệu lực, số tiền đã trả và hạn mức theo đơn trong `src/config/autonomy_policy.yaml`; history refund được host xử lý. Không thêm trần tiền cố định không có trong policy.
 - Ngoài phạm vi: giao dịch tiền thật, khách hàng thật, tranh chấp pháp lý, tự tạo approval, tự mở rộng quyền, xử lý nhiều đơn trong một yêu cầu và rollout production.
-- Phép đo: eval set v1, SHA `d38d36f2dd7a`, 14 item × 5 seed (11/22/33/44/55), 70 trial/shape; nhãn tách khỏi item.
+- Phép đo: eval set v1, SHA `78d66b2cc204`, 14 item × 5 seed (11/22/33/44/55), 70 trial/shape; nhãn tách khỏi item.
 
 ## 3. Định nghĩa chạy đúng
 
-Spec hiện tại 1.0. Baseline: `E-swarm-20261118-d38d` trong `src/reports/baseline_v1.json`; fixed: `E-fixed-20261118-d38d`; phiên bản lỗi: `E-seeded_regression-20261118-d38d`. Tất cả có cùng manifest và không có evaluator failure.
+Spec hiện tại 1.0. Baseline: `E-swarm-20261118-78d6` trong `src/reports/baseline_v1.json`; fixed: `E-fixed-20261118-78d6`; phiên bản lỗi: `E-seeded_regression-20261118-78d6`. Tất cả có cùng manifest và không có evaluator failure.
 
 | Metric | Ngưỡng hiện hành | Chặn merge? | Baseline swarm | fixed | seeded_regression |
 |---|---|---|---:|---:|---:|
@@ -73,11 +73,11 @@ python -m lab9.eval --shape seeded_regression
 python -m lab9.gate --pr reports/eval_seeded_regression.json --baseline reports/baseline_v1.json
 ```
 
-Gate phải exit 0 cho fixed và swarm chạy lại; phải exit 1 cho seeded regression, có `pass_rate` trong lý do chặn. Bộ test Core cục bộ đã đạt 20 test, eval set check 0 vấn đề, `ci_check` đạt; M3 detection 100%, false alarm 0% trên các variant công khai. GitHub job `eval-gate` chưa chạy trên PR, vì vậy chưa đủ điều kiện xác nhận hoàn tất quy trình nộp.
+Gate phải exit 0 cho fixed và swarm chạy lại; phải exit 1 cho seeded regression, có `pass_rate` trong lý do chặn. Bộ test Core cục bộ đã đạt 21 test, eval set check 0 vấn đề, `ci_check` đạt; M3 detection 100%, false alarm 0% trên các variant công khai. GitHub run 44233022085 trên main đã qua 20 test nhưng dừng ở kiểm tra SHA do khác ký tự xuống dòng Windows/Linux. Bản sửa chuẩn hóa LF hiện có 21 test và report sinh lại; cần CI xanh trên PR sửa trước khi xác nhận hoàn tất quy trình nộp.
 
 Eval owner cho bài cá nhân: Chu Nguyễn Tùng Dương, MSSV 2A202604016. Khi gate đỏ: đọc lý do, tái hiện trace, sửa mã eval được phép hoặc bản sửa agent qua cơ chế của bài, thêm test cần thiết và chạy lại; không sửa `src/lab8/`, không sửa tay report và không nới ngưỡng trên cùng eval-set version. Case mẫu có test: [C-002](trace_case.md).
 
-Baseline hiện được sinh trên nhánh `starter/d09` để chuẩn bị bài nộp. Trước merge cần commit baseline và report bằng `git add -f reports/*.json` trong `src/`, mở PR `starter/d09` → `main` trong repo cá nhân, đưa output gate chặn vào mô tả PR và đợi CI xanh. Nhánh main chưa có thay đổi này và chưa xác nhận có branch protection. Sau merge, main giữ baseline cho vòng so sánh tiếp theo.
+PR Core #1 (`starter/d09` → `main`) đã merge nhưng lượt CI đầu thất bại do SHA của CRLF/LF khác nhau. Nhánh `fix/ci-eval-line-endings` chuẩn hóa LF và sinh lại baseline/report. Chủ bài tự review và merge PR sửa sau khi CI xanh. Mỗi report vẫn phải được commit bằng `git add -f reports/*.json` từ `src/`; không sửa tay report. Sau merge, main giữ baseline chuẩn LF cho vòng so sánh tiếp theo. Chưa xác nhận có branch protection.
 
 Không định nghĩa waiver tự động cho bài lab: điều kiện nộp vẫn là job eval-gate xanh. Nếu cần thay đổi yêu cầu học phần, phải có hướng dẫn của giảng viên và ghi lại trong PR; không dùng một lý do miễn trừ để coi CI đỏ là đạt.
 
@@ -90,9 +90,9 @@ Không định nghĩa waiver tự động cho bài lab: điều kiện nộp v�
 | Parser tiền và event override có giới hạn | Có thể bỏ sót số tiền viết bằng chữ, lỗi không có dấu override hoặc báo nhầm câu có nhiều số tiền. | Thêm ca kiểm thử đa dạng và grader đọc cấu trúc dữ liệu rõ ràng. |
 | Judge CSV replay, có nhãn/ghi chú mâu thuẫn | Calibration có thể thiên lệch; chưa phải held-out. | Đối chiếu nhãn và gán nhãn người mới; chạy lại calibration. |
 | Slice và integrity/ratchet chưa triển khai | Có thể bỏ lọt lỗi trên nhóm nhỏ hoặc report bị làm đẹp. | Làm M5–M7 trước khi tuyên bố gate chống gian lận hoặc bao phủ adversarial. |
-| Chưa có kết quả GitHub CI và phê duyệt vận hành | Gate cục bộ chưa hoàn tất quy trình PR/nộp hoặc cho phép rollout thật. | Commit, push, mở PR và xác nhận CI; vận hành thật cần phê duyệt riêng. |
+| CI đầu thất bại do định dạng tệp, chưa có CI xanh cho bản sửa và phê duyệt vận hành | Gate cục bộ chưa hoàn tất quy trình PR/nộp hoặc cho phép rollout thật. | Commit, push, mở PR và xác nhận CI; vận hành thật cần phê duyệt riêng. |
 
-Mã, grader, dữ liệu và report đã được ghi tại commit `ff0ed265107182c8701c37eb1794cef9ec05e652`. Report không chứa commit SHA trong manifest; eval card bổ sung commit này cùng hash các tệp chính, và PR liên kết lịch sử commit. Bộ anchor/variant ẩn chưa được đối chiếu.
+Mã, grader, dữ liệu và report đã được ghi tại commit `5324e4a96d86f4bcd5134a2c98b5ab96444d5724`. Report không chứa commit SHA trong manifest; eval card bổ sung commit này cùng hash các tệp chính, và PR liên kết lịch sử commit. Bộ anchor/variant ẩn chưa được đối chiếu.
 
 ## 7. Khi nào cập nhật v1.2
 

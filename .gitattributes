@@ -1,0 +1,3 @@
+# Keep eval input bytes identical on Windows and Linux for SHA checks.
+src/data/**/*.jsonl text eol=lf
+src/data/eval/*.json text eol=lf

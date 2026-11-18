@@ -4,9 +4,9 @@ Cập nhật ngày 18/11/2026 (Asia/Saigon). Mục đích: xác định gate có
 
 ## Phiên bản và nguồn bằng chứng
 
-- Nhánh làm bài: `starter/d09`; mã eval, grader, dữ liệu và report đã được ghi tại commit `ff0ed265107182c8701c37eb1794cef9ec05e652`. Tài liệu được bổ sung ở commit tiếp theo; PR liên kết lịch sử commit khi nộp.
+- Nhánh sửa CI: `fix/ci-eval-line-endings`; mã eval, grader, dữ liệu và report đã được ghi tại commit `5324e4a96d86f4bcd5134a2c98b5ab96444d5724`. Tài liệu được bổ sung ở commit tiếp theo; PR liên kết lịch sử commit khi nộp.
 - Source Day 08 gốc của giảng viên: commit `034c6c4`; không sửa `src/lab8/` trong bài này.
-- Eval set v1: SHA `d38d36f2dd7a`, 14 item, nguồn `lab8_public`; đáp án tách trong `src/data/eval/labels_v1.json`.
+- Eval set v1: SHA `78d66b2cc204`, 14 item, nguồn `lab8_public`; đáp án tách trong `src/data/eval/labels_v1.json`.
 - Seeds cố định: 11, 22, 33, 44, 55; 70 trial cho mỗi shape. Khi bootstrap, đơn vị lấy mẫu là 14 item, mỗi item đã lấy trung bình 5 seed.
 - `metric_spec_version`: `1.0`; harness map 1.2; Python `3.13.9`; backend `MockLLM`; judge replay từ CSV, không gọi API.
 
@@ -14,10 +14,10 @@ Report nằm trong `src/reports/`:
 
 | Report | Run ID | Shape |
 |---|---|---|
-| `baseline_v1.json` | `E-swarm-20261118-d38d` | `swarm` |
-| `eval_pr.json` | `E-swarm-20261118-d38d` | `swarm` |
-| `eval_fixed.json` | `E-fixed-20261118-d38d` | `fixed` |
-| `eval_seeded_regression.json` | `E-seeded_regression-20261118-d38d` | `seeded_regression` |
+| `baseline_v1.json` | `E-swarm-20261118-78d6` | `swarm` |
+| `eval_pr.json` | `E-swarm-20261118-78d6` | `swarm` |
+| `eval_fixed.json` | `E-fixed-20261118-78d6` | `fixed` |
+| `eval_seeded_regression.json` | `E-seeded_regression-20261118-78d6` | `seeded_regression` |
 
 `eval_pr.json` là lần chạy swarm cục bộ mô phỏng bước CI, chưa phải report của một PR trên GitHub. Run ID do script tạo gồm shape, ngày và SHA rút gọn; baseline và lần chạy lại cùng ngày có thể trùng run ID. Đối chiếu cả tên file, manifest và nội dung khi truy vết.
 
@@ -27,7 +27,7 @@ Dấu vân tay SHA-256 của mã và cấu hình tại thời điểm lập card
 |---|---|
 | `lab9/graders.py` | `ffbb5ad956e2c223222bd92e433d47eb76d353fea99bbe0eb20436f04664fa8b` |
 | `lab9/stats.py` | `20b5a5934dba3fbe25b591fd1ac435fd5b52ca596f6f4acbcfef7db6031df361` |
-| `lab9/evalset.py` | `cb1cd6f40f7d81b009999f3f4b290ab4df011726f0ab9c041d85deaa0e8f4c93` |
+| `lab9/evalset.py` | `e7c893f78d396a63a9f7038ceab74c3c2b74bb9d3b2dba5201bc97e549804b14` |
 | `config/metric_spec.yaml` | `c93c68f58ad86fbce1a600471d4f790db39e77ef53b7dce0be7ddaca939cdd81` |
 
 ## Metric, ngưỡng và kết quả
@@ -66,7 +66,7 @@ CI 95%, percentile bootstrap, 1.000 lần lấy mẫu lại, RNG 2027. Δ = phi�
 - Fixed: exit 0. Pass rate đạt 1,0000; chưa thể khẳng định cải thiện có ý nghĩa thống kê vì CI của chênh lệch chạm 0.
 - Seeded regression: exit 1, bị chặn bởi `refund_amount_correct, pass_rate, reply_amount_correct, status_correct, proposal_correct`. Pass rate 0,7143 thấp hơn sàn 0,85 và CI chênh lệch nằm hoàn toàn dưới 0. Với `refund_amount_correct`, CI chạm 0 nhưng tỷ lệ vẫn dưới sàn 0,95 nên bị chặn.
 - M3: `lab9.mutation --detect` đã đo detection 100% trên 20 trial lỗi của seeded regression và false alarm 0% trên 70 trial fixed. Đây là kết quả trên các variant công khai.
-- Kiểm tra Core cục bộ gần nhất: 20 test pass; eval set check 0 vấn đề. Tại thời điểm chốt phép đo cục bộ, chưa chạy GitHub Actions; kết quả CI trên PR cần được đối chiếu riêng khi nộp.
+- Kiểm tra Core cục bộ gần nhất: 21 test pass; eval set check 0 vấn đề. PR Core #1 đã merge. [Lượt CI trên main](https://github.com/ChuTungDuongg/K5-L3B-DAY09-ChuNguyenTungDuong-2A202604016-EvaluationandFailureAnalysis/actions/runs/44233022085) qua 20 test nhưng thất bại do SHA tính trên CRLF của Windows khác LF của Linux. Bản sửa chuẩn hóa LF, thêm regression test và sinh lại các report ở trên; cần xác nhận CI xanh trên PR sửa trước khi nộp.
 
 ## Judge và phân tích trace
 
@@ -95,3 +95,7 @@ Pilot hiện tại là kiểm thử offline với ticket mô phỏng về trễ 
 ## Quy tắc cập nhật
 
 Thêm/bớt item, đổi claim hoặc nhãn, đổi split/nhóm kiểm thử làm thay đổi phép so sánh: tăng `eval_set_version`, ghi provenance, build/check và chạy lại baseline. Đổi metric, ngưỡng hoặc cách chấm: tăng `metric_spec_version` và ghi lý do. Trên cùng eval-set version chỉ siết ngưỡng, không nới để làm gate xanh. Card này phản ánh spec khởi tạo 1.0 hiện tại; mọi lần sửa tiếp theo phải cập nhật phiên bản và report tương ứng.
+
+### Sửa định dạng tệp cho CI
+
+Bộ 14 item và nhãn không đổi về nội dung; chỉ chuẩn hóa ký tự xuống dòng LF bằng `.gitattributes` và `write_text(newline="\n")` ở builder v1/v2. Vì không thay đổi ca kiểm thử hoặc ngưỡng, giữ eval-set v1 và spec 1.0. Baseline và report đã được sinh lại bằng CLI theo byte LF chuẩn, không chỉnh report thủ công.
