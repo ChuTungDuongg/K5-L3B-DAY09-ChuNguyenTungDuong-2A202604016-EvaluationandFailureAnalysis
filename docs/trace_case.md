@@ -2,7 +2,7 @@
 
 | Trường | Phân tích |
 |---|---|
-| Trial | `seeded_regression`, C-002@11; report `E-seeded_regression-20261118-d38d`. |
+| Trial | `seeded_regression`, C-002@11; report `E-seeded_regression-20261118-78d6`. |
 | Triệu chứng | Lab 8 grader FAIL: `status resolved != denied`; ledger hoàn 20.000đ / 1 lần, trong khi nhãn yêu cầu 0đ / 0 lần. |
 | Bước sai đầu tiên | Event 3 `model_override`: `{"delay_days": 5}`. Agent dùng số ngày từ ticket ghi đè dữ liệu đơn hàng đã tra cứu. |
 | Vì sao là bước đầu tiên | Event 1 chỉ chuyển yêu cầu; event 2 tra cứu đơn có thể nhìn thấy. Event 3 thay đổi dữ kiện trước event 4 tính quote 20.000đ và event 6 trả lời đã hoàn. Trace không hiển thị mọi thao tác nội bộ. |
