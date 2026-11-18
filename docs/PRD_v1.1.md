@@ -89,14 +89,14 @@ Không định nghĩa waiver tự động cho bài lab: điều kiện nộp v�
 | Reply của swarm không có trong trace | `reply_amount_correct` trả True cho trường hợp không áp dụng; 1,0000 không phải tỷ lệ reply được xác minh. | Đo riêng độ bao phủ, bổ sung quan sát reply ở tầng được phép trước khi dùng cho release thật. |
 | Parser tiền và event override có giới hạn | Có thể bỏ sót số tiền viết bằng chữ, lỗi không có dấu override hoặc báo nhầm câu có nhiều số tiền. | Thêm ca kiểm thử đa dạng và grader đọc cấu trúc dữ liệu rõ ràng. |
 | Judge CSV replay, có nhãn/ghi chú mâu thuẫn | Calibration có thể thiên lệch; chưa phải held-out. | Đối chiếu nhãn và gán nhãn người mới; chạy lại calibration. |
-| Slice và integrity/ratchet chưa triển khai | Có thể bỏ lọt lỗi trên nhóm nhỏ hoặc report bị làm đẹp. | Làm M5–M7 trước khi tuyên bố gate chống gian lận hoặc bao phủ adversarial. |
+| Bộ Core v1 chấm chủ yếu theo metric tổng thể | Kết quả v1 không đo đủ các nhóm rủi ro nhỏ. | Dùng mục v2 trong eval card để xem kết quả slice, kiểm tra tính toàn vẹn report và giới hạn. |
 | CI đầu thất bại do định dạng tệp, chưa có CI xanh cho bản sửa và phê duyệt vận hành | Gate cục bộ chưa hoàn tất quy trình PR/nộp hoặc cho phép rollout thật. | Commit, push, mở PR và xác nhận CI; vận hành thật cần phê duyệt riêng. |
 
 Mã, grader, dữ liệu và report đã được ghi tại commit `5324e4a96d86f4bcd5134a2c98b5ab96444d5724`. Report không chứa commit SHA trong manifest; eval card bổ sung commit này cùng hash các tệp chính, và PR liên kết lịch sử commit. Bộ anchor/variant ẩn chưa được đối chiếu.
 
 ## 7. Khi nào cập nhật v1.2
 
-Thay đổi nội dung eval set hoặc nhãn: tăng `eval_set_version`, ghi provenance, chạy build/check và tạo lại baseline. Thêm/sửa metric, ngưỡng hay cách chấm: tăng `metric_spec_version`, nêu lý do và chạy lại report/gate; cùng eval-set version chỉ cho phép siết ngưỡng. Thay đổi phạm vi pilot hoặc điều kiện release: cập nhật PRD và đề nghị review lại. M5–M7 bổ sung v2 cần mục kết quả riêng trong eval card, không dùng kết quả Core để suy ra đã đạt Advanced/Expert.
+Thay đổi nội dung eval set hoặc nhãn: tăng `eval_set_version`, ghi provenance, chạy build/check và tạo lại baseline. Thêm/sửa metric, ngưỡng hay cách chấm: tăng `metric_spec_version`, nêu lý do và chạy lại report/gate; cùng eval-set version chỉ cho phép siết ngưỡng. Thay đổi phạm vi pilot hoặc điều kiện release: cập nhật PRD và đề nghị review lại. Kết quả M5–M7 dùng spec 2.0 và baseline riêng, được ghi trong mục Advanced/Expert của [eval card](eval_card.md#advancedexpert-m5m7).
 
 ## 8. Trách nhiệm và phê duyệt
 
