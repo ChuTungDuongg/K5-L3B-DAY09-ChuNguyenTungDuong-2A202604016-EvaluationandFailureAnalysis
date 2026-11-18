@@ -89,7 +89,7 @@ Pilot hiện tại là kiểm thử offline với ticket mô phỏng về trễ 
 - FM-08 chỉ đối chiếu số có đơn vị đ/₫/VND/đồng trong reply cuối. Swarm gốc không ghi reply; grader hiện trả True cho trường hợp không áp dụng. Vì vậy giá trị 1,0000 của swarm không chứng minh reply đúng, cũng không đo độ bao phủ. Câu có nhiều khoản tiền khác vai trò hoặc số tiền viết bằng chữ cần grader bổ sung.
 - `DbFactKept` phụ thuộc event `model_override`; lỗi không để lại event này có thể lọt metric đó. Các grader outcome hỗ trợ bắt hệ quả nhưng không bảo đảm phát hiện mọi đường đi lỗi.
 - Judge dùng CSV replay công khai, nhãn người có thể có điểm mâu thuẫn; cần tập held-out mới và nhãn độc lập trước khi sử dụng thực tế.
-- Core chưa triển khai slice gate và integrity/ratchet của M5–M7; chưa bảo vệ đầy đủ trước report bị làm đẹp, mất dòng hoặc nới spec. Chưa đối chiếu bộ anchor/variant ẩn của giảng viên.
+- Kết quả Core ở trên dùng spec v1. Phần dưới ghi kết quả slice và kiểm tra tính toàn vẹn ở v2. Bộ anchor và variant ẩn do giảng viên giữ.
 - Chưa đo người dùng thật, độ trễ sản xuất hay giá API; chưa có phê duyệt vận hành thực tế.
 
 ## Quy tắc cập nhật
@@ -99,3 +99,30 @@ Thêm/bớt item, đổi claim hoặc nhãn, đổi split/nhóm kiểm thử là
 ### Sửa định dạng tệp cho CI
 
 Bộ 14 item và nhãn không đổi về nội dung; chỉ chuẩn hóa ký tự xuống dòng LF bằng `.gitattributes` và `write_text(newline="\n")` ở builder v1/v2. Vì không thay đổi ca kiểm thử hoặc ngưỡng, giữ eval-set v1 và spec 1.0. Baseline và report đã được sinh lại bằng CLI theo byte LF chuẩn, không chỉnh report thủ công.
+
+
+## Advanced/Expert M5–M7
+
+Eval set v2 (`356c0ebe29fa`) gồm 14 ca từ v1 và 14 ca do giảng viên cung cấp. Mỗi phiên bản chạy 140 lượt trên MockLLM với 5 seed `11,22,33,44,55`. Baseline `E-swarm-20261118-356c` có `pass_rate=0.9786`, `pass@5=1.0000` và `pass^5=0.8929`. So với chính nó, baseline qua gate.
+
+| Run ID | pass_rate | pass@5 | pass^5 | Kết quả gate |
+|---|---:|---:|---:|---|
+| `E-fixed-20261118-356c` | 1.0000 | 1.0000 | 1.0000 | Qua |
+| `E-honest_refactor-20261118-356c` | 1.0000 | 1.0000 | 1.0000 | Qua |
+| `E-seeded_regression-20261118-356c` | 0.6429 | 0.6429 | 0.6429 | Chặn, gồm `pass_rate` và `reply_amount_correct` |
+| `E-slice_regression-20261118-356c` | 0.9357 | 1.0000 | 0.8929 | Chặn riêng bởi `slice:money_movement/pass_rate` |
+| `E-flaky_regression-20261118-356c` | 0.9143 | 1.0000 | 0.5714 | Chặn bởi `pass_hat_5`, CI của `pass_rate` và slice `money_movement` |
+
+### M5 · Đánh giá theo nhóm
+
+Nhóm `money_movement` có 12 ca có khoản hoàn dự kiến. `slice_regression` đạt 93,57% tổng thể, với CI của chênh lệch pass rate từ −0,121 đến +0,029. Riêng nhóm có hoàn tiền chỉ đạt 85%, thấp hơn sàn 90%, nên bị chặn. Nhóm `adversarial` có 14 ca và có sàn 90% riêng. `slice_regression` vẫn đạt 91,43% ở nhóm này, trong khi `seeded_regression` chỉ đạt 57,14%. Cả hai nhóm chặn nếu CI ghép cặp nằm hoàn toàn dưới 0. Metric `reply_amount_correct` tiếp tục chặn FM-08 ở ngưỡng 1,0 theo phạm vi của grader đã nêu ở trên.
+
+### M6 · Độ ổn định theo seed
+
+`pass@k` đo xác suất có ít nhất một lượt đạt trong k lượt lấy mẫu, còn `pass^k` đo xác suất cả k lượt đều đạt. So sánh A/A chạy cùng swarm với bộ seed trên và `66,77,88,99,110`. Tất cả metric có Δ = 0, gồm `pass_hat_5 = 0.8929` ở cả hai bộ. Sàn `pass_hat_5 = 0.85` thấp hơn mức A/A quan sát 4,29 điểm phần trăm và chặn `flaky_regression` ở 57,14%, dù phiên bản này có ít nhất một lượt đạt cho mọi ca.
+
+MockLLM lặp lại cùng quy luật theo seed. Với LLM thật, cần nhiều lần A/A để đo dao động do lấy mẫu, hạ tầng và phiên bản model trước khi chọn sàn. Một lỗi xảy ra ngẫu nhiên với xác suất 1/3 vẫn có khoảng 13% khả năng không xuất hiện trong 5 lượt độc lập trên một ca. Lỗi còn hiếm hơn sẽ khó quan sát hơn.
+
+### M7 · Tính toàn vẹn của report
+
+Gate từ chối kết quả có giá trị không hữu hạn, thiếu hoặc trùng cặp ca–seed, đổi seed, đổi slice, thiếu kết quả grader hoặc có lỗi evaluator. Khi có spec từ nhánh đích cùng phiên bản eval set, gate cũng chặn việc bỏ metric, bỏ slice, tắt điều kiện chặn hoặc nới ngưỡng. Bốn trap công khai đều bị chặn theo lý do `INTEGRITY`. Scorecard chặn 3/3 hồi quy và cho cả hai đối chứng qua. Kết quả này bao phủ bài chạy công khai. Gate chưa tính lại toàn bộ metric từ các dòng report và chưa xác minh nguồn gốc bằng chữ ký. Các kiểm tra này cần thiết nếu nguồn report không đáng tin cậy.

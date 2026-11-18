@@ -69,7 +69,7 @@ jobs:
     defaults: {run: {working-directory: src}}
     steps:
       - uses: actions/checkout@v7
-        with: {persist-credentials: false}
+        with: {persist-credentials: false, fetch-depth: 2}
       - id: has
         run: "test -f reports/baseline_v2.json && echo v2=1 >> \"$GITHUB_OUTPUT\" || echo skip, no baseline_v2"
       - if: steps.has.outputs.v2
@@ -81,5 +81,21 @@ jobs:
         run: python -m pytest -q -m student -o addopts= -k advanced
       - if: steps.has.outputs.v2
         run: python -m lab9.evalset --v2
-      - if: steps.has.outputs.v2
-        run: python -m lab9.mutation --spec config/metric_spec_v2.yaml --baseline reports/baseline_v2.json
+      - name: Evaluate public variants against the v2 gate
+        if: steps.has.outputs.v2
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          base_spec=()
+          if [[ -n "$BASE_SHA" ]]; then
+            git show "$BASE_SHA:src/config/metric_spec_v2.yaml" > "$RUNNER_TEMP/lab9-base-spec-v2.yaml"
+            base_spec=(--base-spec "$RUNNER_TEMP/lab9-base-spec-v2.yaml")
+          fi
+          python -m lab9.mutation --spec config/metric_spec_v2.yaml --baseline reports/baseline_v2.json "${base_spec[@]}"
+      - name: Verify the v2 gate blocks all public integrity traps
+        if: steps.has.outputs.v2
+        shell: bash
+        run: |
+          python -m lab9.eval --shape slice_regression --spec config/metric_spec_v2.yaml --out reports/eval_slice_regression_v2.json
+          python -m lab9.traps --pr reports/eval_slice_regression_v2.json --baseline reports/baseline_v2.json --spec config/metric_spec_v2.yaml
